@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello
+  labels:
+    name: hello
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello
+  template:
+    metadata:
+      labels:
+        app: hello
+    spec:
+      containers:
+        - name: backend
+          image: localhost:32000/app:latest
+          ports:
+          - containerPort: 3000
+        - name: nginx
+          image: localhost:32000/nginx:alpine
+          ports:
+          - containerPort: 80
+          volumeMounts:
+            - name: nginx-conf-file
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: default-conf-file
+              mountPath: /etc/nginx/templates/default.conf.template
+              subPath: default.conf.template
+              readOnly: true
+      volumes:
+        - name: nginx-conf-file
+          configMap:
+            name: nginx-conf
+        - name: default-conf-file
+          configMap:
+            name: default-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello
+spec:
+  type: NodePort
+  selector:
+    app: hello
+  ports:
+    - protocol: TCP
+      name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080

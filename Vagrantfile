@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-$num_instances = 2
+$num_instances = 1
 
 Vagrant.configure("2") do |config|
 
@@ -11,7 +11,6 @@ Vagrant.configure("2") do |config|
   (1..$num_instances).each do |i|
     config.vm.define vm_name = "node#{i}" do |config|
       config.vm.hostname = "node#{i}"
-      config.vm.network :forwarded_port, guest: 80, host: i+8080, host_ip: "127.0.0.1", auto_correct: true
       config.vm.network :private_network, ip: "192.168.33.#{i+10}"
 
       config.vm.provider "virtualbox" do |vb|
@@ -22,8 +21,9 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.provision "shell", inline: <<-SHELL
+  config.vm.provision "docker"
 
+  config.vm.provision "shell", inline: <<-SHELL
     # Trust your enterprise certificates
     SHARE=/vagrant/ca-trust
     CERTS=/usr/local/share/ca-certificates
